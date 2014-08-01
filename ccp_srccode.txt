@@ -1,0 +1,16 @@
+SelectReal[rules_List,vars_List]:= Select[rules, Element[vars/.#, Reals]&]
+HessianMatrix[f_,vars_]:= Outer[D[f, #1, #2]&, vars, vars]
+ClassifyCriticalPoints[fun_,vars_List]:=
+	Module[{soln,hmat,hmatn,decide,detlist1,detlist2},
+	soln = SelectReal[Solve[Thread[D[fun,#]&/@vars==Table[0,{Length[vars]}]],vars],vars];
+	hmat = HessianMatrix[fun,vars];
+	hmatn[x_]:= hmat[[1;;x,1;;x]];
+	detlist1 = Table[Det[hmatn[i]],{i,1,Length[vars]}];
+	detlist2 = Table[(-1)^i Det[hmatn[i]],{i,1,Length[vars]}];
+	decide[detlist1_List,detlist2_List]:=
+			If[And@@Map[N[#]>0&,detlist1]==True,"Local Minimum",
+			If[And@@Map[N[#]>0&,detlist2]==True,"Local Maximum",
+			If[Or@@Map[N[#]==0&,detlist1]==True,"Inconclusive",
+			"Saddle Point"]]];	
+	{decide[detlist1,detlist2],vars}/.soln
+]
